@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+  <meta charset="utf-8">
+
+  <link rel="stylesheet" href="https://cdn.staticfile.org/layui/2.5.6/css/layui.min.css">
+  <script src="https://cdn.staticfile.org/jquery/3.5.1/jquery.min.js"></script>
+  <script src="https://cdn.staticfile.org/layui/2.5.6/layui.min.js"></script>
+</head>
+
+<body>
+  <button id="submitBtn">提交表单</button>
+
+<script>
+  layui.use(['layer', 'form'], function(){
+    var layer = layui.layer;
+    var form = layui.form;
+
+    // 点击按钮触发事件
+    $('#submitBtn').click(function(){
+      // 弹出对话框
+      layer.open({
+        type: 1,
+        title: '提交表单',
+        area: ['500px', '300px'],
+        content: '<form class="layui-form" action=""><div class="layui-form-item"><label class="layui-form-label">姓名</label><div class="layui-input-block"><input type="text" name="username" required  lay-verify="required" placeholder="请输入姓名" autocomplete="off" class="layui-input"></div></div><div class="layui-form-item"><label class="layui-form-label">年龄</label><div class="layui-input-block"><input type="text" name="age" required  lay-verify="required" placeholder="请输入年龄" autocomplete="off" class="layui-input"></div></div><div class="layui-form-item"><div class="layui-input-block"><button class="layui-btn" lay-submit lay-filter="submitForm">提交</button></div></div></form>'
+      });
+
+      // 监听表单提交事件
+      form.on('submit(submitForm)', function(data){
+        // 提交表单
+        console.log(data.field);
+        return false; // 阻止表单跳转
+      });
+    });
+  });
+</script>
+</body>
+</html>

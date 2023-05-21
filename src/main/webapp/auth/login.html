@@ -1,0 +1,217 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>登录页</title>
+    <link rel="stylesheet" href="../static/element-ui/index.css">
+
+</head>
+<body>
+<div class="bg"></div>
+<div id="app">
+    <el-tabs v-model="activeName" type="border-card" @tab-click="handleClick">
+        <el-tab-pane label="账号密码登录" name="first">
+
+            <el-form :model="login_form" :rules="rules" ref="rf" label-width="100px">
+                <el-form-item label="用户名" prop="username">
+                    <el-input v-model="login_form.username"></el-input>
+                </el-form-item>
+                <el-form-item label="密码" prop="password">
+                    <el-input type="password" v-model="login_form.password"></el-input>
+                </el-form-item>
+                <el-form-item label="验证码" prop="checkcode" :span="6">
+                    <el-row>
+                        <el-col :span="17">
+                            <el-input v-model="login_form.checkcode"></el-input>
+                        </el-col>
+                        <el-col :span="7">
+                            <el-image
+                                    style="width: 100px; height: 40px;margin-left: 5px"
+                                    :src="checkcode_url"
+                                    :fit="fit" @click="reflushCheckcode"></el-image>
+                        </el-col>
+                    </el-row>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="submitForm('rf')">登录</el-button>
+                    <el-button @click="resetForm('rf')">重置</el-button>
+                    <el-link type="primary" href="register" style="margin-left: 10px">没有账号？注册一个</el-link>
+                </el-form-item>
+            </el-form>
+
+        </el-tab-pane>
+        <el-tab-pane label="扫码登录（管理员）" name="second">
+            <el-image
+                    style="width: 260px; height: 260px; display:block; margin: auto"
+                    :src="qrcode_url"
+                    :fit="fit"></el-image>
+        </el-tab-pane>
+    </el-tabs>
+</div>
+
+
+<script src="../static/js/vue.js"></script>
+<script src="../static/element-ui/index.js"></script>
+<script src="../static/js/axios.min.js"></script>
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            var password_rule = (rule, value, callback) => {
+                if (value.length < 11) {
+                    callback(new Error('密码不能少于12位！'))
+                }
+                var pattern = /^(?=.*[a-z])(?=.*[1-9]).+$/
+                if (pattern.test(value)) {
+                    callback();
+                } else {
+                    callback(new Error('密码必须包含数字和小写字母！'));
+                }
+            };
+            var checkcode_rule = (rule, value, callback) => {
+                if (value.length < 4) {
+                    callback(new Error('验证码错误！'))
+                }
+                axios.post('auth/api/checkcode_verify', {'code': value})
+                    .then(resp => {
+                        if (resp.data.data === 'true') {
+                            callback()
+                        } else {
+                            callback(new Error('验证码错误'))
+                        }
+                    })
+            };
+            return {
+                activeName: "first",
+                login_form: {
+                    username: '',
+                    password: '',
+                    checkcode: ''
+                },
+                checkcode_url: `api/generate_checkcode?time=`,
+                qrcode_url: null,
+                key: null,
+                rules: {
+                    username: [
+                        {required: true, message: '请输入用户名', trigger: 'blur'},
+                        {max: 64, message: '太长了！'}
+                    ],
+                    password: [
+                        {required: true, validator: password_rule, trigger: 'blur'},
+                        {max: 64, message: '太长了！'}
+                    ],
+                    checkcode: [
+                        {required: true, validator: checkcode_rule, trigger: 'blur'},
+                        {min: 4, max: 4, message: '验证码为4位'}
+                    ]
+                }
+            };
+        },
+        methods: {
+            submitForm(formName) {
+                this.$refs[formName].validate((valid) => {
+                    if (valid) {
+                        //alert('submit!');
+                        axios.post('auth/api/login', this.login_form) // axios.post('auth/api/login',Qs.stringify(this.login_form))
+                            .then(resp => {
+                                if (resp.data.code === 0) {
+                                    localStorage.setItem('token', resp.data.data)
+                                    axios.interceptors.request.use(config => {
+                                        config.headers.authorization = localStorage.getItem("token")
+                                        return config
+
+                                    }, error => {
+                                        console.log('err', error)
+                                    })
+                                    alert("登录成功！")
+                                    window.location.href = '/menu'
+                                } else {
+                                    this.$message.error(resp.data.msg)
+                                }
+
+                            })
+                    } else {
+                        console.log('error submit!!');
+                        return false;
+                    }
+                });
+            },
+            resetForm(formName) {
+                this.$refs[formName].resetFields();
+            },
+            reflushCheckcode() {
+
+                if (this.checkcode_url.split('?').pop().length > 9) {
+                    this.$message.error('错误次数太多了，休息一下吧')
+                    setTimeout(() => {
+                        this.checkcode_url = `api/generate_checkcode?time=`
+                    }, 2000);
+                } else {
+                    this.checkcode_url = this.checkcode_url + '1'
+                }
+            },
+            handleClick(e) {
+                if (e.name === 'second') {
+                    this.pollingQrCode();
+                }
+            },
+            pollingQrCode() {
+                if (this.activeName === 'first') return;
+                setTimeout(() => {
+                    axios.post(`auth/api/check_qrcode?key=${this.key}`)
+                        .then(resp => {
+                            console.log(resp.data)
+                            if (resp.data.code === 0) {
+                                localStorage.setItem('token', resp.data.data)
+                                axios.interceptors.request.use(config => {
+                                    config.headers.authorization = localStorage.getItem("token")
+                                    return config
+                                }, error => {
+                                    console.log('err', error)
+                                })
+                                alert("登录成功！")
+                                window.location.href = '/admin'
+                            } else {
+                                console.log('polling')
+                                this.pollingQrCode()
+                            }
+                        })
+                }, 3000);
+            },
+            ranStr() {
+                let result = '';
+                while (result.length < 32) {
+                    result += Math.random().toString(16).substring(2);
+                }
+                console.log(result)
+                return result.substring(0, 32);
+            }
+        },
+        created() {
+        },
+        mounted() {
+            #@initAjax();
+            this.key = this.ranStr();
+            this.qrcode_url = `api/summon_qrcode?key=${this.key}`
+            //this.pollingQrCode();
+        }
+    })
+</script>
+</body>
+<style>
+    #app {
+        position: absolute;
+        top: 25%;
+        left: 50%;
+        width: 460px;
+        opacity: 100%;
+    }
+    .bg {
+        display: flex;
+        width: 100%;
+        height: 100vh;
+        background-image: url("../static/img/bg.jpg");
+        opacity: 0.5;
+    }
+</style>
+</html>

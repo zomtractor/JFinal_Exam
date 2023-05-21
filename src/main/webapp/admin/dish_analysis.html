@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DashBoard</title>
+    <link rel="stylesheet" href="../static/element-ui/index.css">
+</head>
+<body>
+<div id="app">
+    <div class="wrapper">
+        <div class="left">
+            <el-card class="card" shadow="hover">
+                <div class="card-image">
+                    <img :src="dish.picture" alt="">
+                </div>
+                <div class="card-content">
+                    <h3 class="card-title">{{ dish.name }}</h3>
+                    <p class="card-brief">{{ dish.description }}</p>
+                </div>
+            </el-card>
+        </div>
+        <div class="right">
+            <div class="right-top">
+                <el-date-picker
+                        v-model="start"
+                        type="datetime"
+                        placeholder="选择开始时间"
+                        align="right"
+                        :picker-options="pickerOptions">
+                </el-date-picker>
+                &nbsp;&nbsp;
+                <el-date-picker
+                        v-model="end"
+                        type="datetime"
+                        placeholder="选择结束时间"
+                        align="right"
+                        :picker-options="pickerOptions">
+                </el-date-picker>
+                <el-button type="primary" round @click="getByTime"> 查询</el-button>
+
+                <ve-pie :data="pieData" :events="evt" style="width: 500px;margin-left: 20%;padding-top: 20px"></ve-pie>
+            </div>
+            <div class="right-bottom" v-if="gopen">
+                <div v-if="pieData.rows.length>0">
+                    <el-switch v-model="chartType" style="float: right;position: relative;z-index: 1"> </el-switch>
+                    <ve-histogram v-if="chartType" :data="hisData" :legend-visible="false" style="width: 800px"></ve-histogram>
+                    <ve-line v-else :data="hisData" :legend-visible="false" style="width: 800px"></ve-line>
+                </div>
+                <div v-else>
+                    <h4> 该时间段内没有记录 </h4>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script src="../static/js/vue.js"></script>
+<script src="../static/js/axios.min.js"></script>
+<script src="../static/js/project.js"></script>
+<script src="../static/element-ui/index.js"></script>
+<script src="../static/v-charts/echarts.min.js"></script>
+<script src="../static/v-charts/index.min.js"></script>
+<link rel="stylesheet" href="../static/v-charts/style.min.css">
+
+<script>
+
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                chartType: false, // 默认显示折线图
+                gopen:false,
+                pieData: {
+                    columns: ['x', 'y1'],
+                    rows: [
+                    ]
+                },
+                hisData: {
+                    columns: ['x', 'y1'],
+                    rows: [
+                    ],
+                },
+                pickerOptions: {
+                    shortcuts: [{
+                        text: '今天',
+                        onClick(picker) {
+                            picker.$emit('pick', new Date());
+                        }
+                    }, {
+                        text: '昨天',
+                        onClick(picker) {
+                            const date = new Date();
+                            date.setTime(date.getTime() - 3600 * 1000 * 24);
+                            picker.$emit('pick', date);
+                        }
+                    }, {
+                        text: '一周前',
+                        onClick(picker) {
+                            const date = new Date();
+                            date.setTime(date.getTime() - 3600 * 1000 * 24 * 7);
+                            picker.$emit('pick', date);
+                        }
+                    }]
+                },
+                start: null,
+                end: null,
+                records: null,
+                evt: {
+                    click: (it) => {
+                        // console.log(it.name)
+                        // alert(it.dataIndex)
+                        // alert(this.clickedData[it.dataIndex])
+                        let id = this.records[it.dataIndex].id
+                        this.getById(id)
+                        this.getDishChartById(id)
+                        // alert(id)
+                    }
+                },
+                dish: {
+                    id: null,
+                    name: null,
+                    description: null,
+                    price: 0.0,
+                    picture: '../static/img/hint.jpg',
+                }
+            };
+        },
+        methods: {
+            getByTime(){
+                axios.post("admin/data/api/getDishChartByDate",{'start':this.start,'end':this.end})
+                    .then(resp=>{
+                        if(resp.data.code===0){
+                            this.pieData=resp.data.data.chart
+                            this.records = resp.data.data.data
+                            this.gopen=true
+                        }
+                    })
+            },
+            getDishChartById(id){
+                axios.post('admin/data/api/getDishChartById',{'id':id,'start':this.start,'end':this.end})
+                .then(resp=>{
+                    if(resp.data.code===0){
+                        this.hisData = resp.data.data.chart
+                    }
+
+                })
+            },
+            getById(id){
+                axios.get(`dish/api/getDish/${id}`)
+                .then(resp=>{
+                    if(resp.data.code===0){
+                        this.dish=resp.data.data
+                    }
+                })
+            }
+        },
+        mounted() {
+            #@init()
+            this.end = new Date()
+            this.start = new Date(this.end.getTime()- 3600 * 1000 * 24 * 7)
+            this.getByTime()
+        }
+    })
+
+</script>
+</body>
+<style>
+    .wrapper {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        max-width: 1200px; /* set a maximum width */
+        margin: 0 auto; /* center the container horizontally */
+    }
+
+    .left {
+        width: 30%;
+        overflow: auto;
+        max-height: 100%;
+    }
+
+    .right {
+        width: 65%;
+        display: flex;
+        flex-direction: column;
+        justify-content: space-between;
+    }
+
+    .right-top {
+        height: 50%;
+    }
+
+    .right-bottom {
+        height: 50%;
+    }
+    .card {
+        position: fixed;
+        width: 300px;
+        height: 400px;
+        overflow: hidden;
+        border-radius: 10px;
+        cursor: pointer;
+    }
+    .card-image img {
+        width: 100%;
+        height: 200px;
+        object-fit: cover;
+    }
+    .card-content {
+        padding: 20px;
+    }
+    .card-title {
+        font-size: 24px;
+        font-weight: bold;
+        margin-bottom: 10px;
+    }
+    .card-brief {
+        font-size: 16px;
+        color: #666;
+        line-height: 1.5;
+    }
+    .toggle-btn {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        z-index: 999;
+    }
+
+</style>
+</html>
+

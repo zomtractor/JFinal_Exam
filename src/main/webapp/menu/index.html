@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>预定</title>
+    <link rel="stylesheet" href="../static/element-ui/index.css">
+</head>
+<body>
+
+<div id="app">
+    <div class="container">
+        <el-tabs v-model="activeName" @tab-click="handleClick">
+            <!--            <div class="goods">-->
+            <el-tab-pane label="预定" name="first" >
+                <el-row v-if="!again">
+                    <el-col v-for="item in goods" :key="item.id" :xs="24" :sm="18" :md="6" :lg="4">
+                        <el-card>
+                            <img :src="item.picture" width="200px" height="200px" alt="" @click="showDetails(item)">
+                            <div class="info" style="padding-left: 14px">
+                                <div class="name">{{ item.name }}</div>
+                                <div class="price" style="color: red">
+                                    ￥{{ item.price }}
+                                    <el-button type="text" @click="addToCart(item)" style="float: right;">投一票</el-button>
+                                </div>
+
+                            </div>
+                        </el-card>
+                    </el-col>
+                </el-row>
+                <h3 v-else>您已经参加过本轮预定，记得按时就餐！</h3>
+                <el-dialog :visible.sync="showDialog" title="详细信息">
+                    <div class="dialog-wrapper">
+                        <img :src="selected.picture" class="dialog-image" alt="">
+                        <div class="dialog-info">
+                            <div class="name">{{ selected.name }}</div>
+                            <div class="price">{{ selected.price }}</div>
+                            <div class="description">{{ selected.description }}</div>
+                        </div>
+                    </div>
+                    <div slot="footer">
+                        <el-button @click="showDialog = false">取消</el-button>
+                        <el-button type="primary" @click="addToCart()">投一票</el-button>
+                    </div>
+                </el-dialog>
+                <div class="cart" v-if="!again">
+                    <div class="tag-box">
+                        <el-tag
+                                v-for="(tag, index) in tags"
+                                :key="index"
+                                :label="tag.label"
+                                :type="tag.type"
+                                closable
+                                @close="removeTag(tag)"
+                        >{{ tag.text }}</el-tag>
+                    </div>
+                    <div class="total">
+                        {{ getTotal() }}
+                        <el-button type="primary" @click="submitTags">提交</el-button>
+                    </div>
+                </div>
+            </el-tab-pane>
+            <el-tab-pane label="管理" name="second">
+            </el-tab-pane>
+            <el-tab-pane label="个人信息" name="third">
+            </el-tab-pane>
+            <!--            </div>-->
+        </el-tabs>
+    </div>
+</div>
+<script src="../static/js/vue.js"></script>
+<script src="../static/js/axios.min.js"></script>
+<script src="../static/element-ui/index.js"></script>
+
+<script>
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                activeName: 'first',
+                again: false,
+                goods: [
+                    {
+                        id: 1,
+                        name: 'Product 1',
+                        price: 100,
+                        picture: 'http://localhost:8081/jfinal/dish/1.jpg',
+                        description: 'This is the description of product 1',
+                    },
+                ],
+                dishes: [],
+                tags: [],
+                selected: {
+                    id: 3,
+                    name: 'Product 3',
+                    price: 300,
+                    image: 'http://localhost:8081/jfinal/dish/1.jpg',
+                    description: 'This is the description of product 3',
+                },
+                showDialog: false,
+
+            }
+        },
+        methods: {
+            showDetails(item) {
+                this.selected = item;
+                this.showDialog = true;
+            },
+            addToCart(item) {
+                if(item==null) item = this.selected
+                this.showDialog = false;
+                if (this.tags.find((t) => t.id== item.id)) {
+                    return
+                }
+                this.dishes.push(item)
+                const vals = ['success','','warning','info']
+                const colorType = (i) => vals[i % 4];
+                this.tags.push({
+                    label: item.name,
+                    text: item.name,
+                    type: colorType(item.id),
+                    id: item.id
+                });
+            },
+            removeTag(tag) {
+                this.tags.splice(this.tags.indexOf(tag), 1);
+                this.getTotal()
+            },
+            getTotal() {
+                let total = 0;
+                for (let i = 0; i < this.tags.length; i++) {
+                    let tag = this.tags[i];
+                    for (let j = 0; j < this.goods.length; j++) {
+                        let item = this.goods[j];
+                        if (item.id === tag.id) {
+                            total += item.price;
+                        }
+                    }
+                }
+                return `预估价格: ￥${total}`;
+            },
+            handleClick(tab,event){
+                if(tab.name==='second'){
+                    window.location.href='history'
+                } else if(tab.name==='third'){
+                    window.location.href='personal'
+                }
+            },
+            submitTags(){
+                this.$confirm('你确定要提交吗？提交后不可更改，请准时就餐', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    let data = []
+                    for(i=0;i<this.tags.length;i++){
+                        data.push(this.tags[i].id);
+                    }
+                    axios.post('menu/api/post',data)
+                    .then(resp=>{
+                        if(resp.data.code===0){
+                            this.$message.success("操作成功！")
+                            this.again=true
+                        } else {
+                            this.$message.error("操作失败！")
+                        }
+                    })
+                }).catch((e) => {
+                    console.log(e)
+                    alert("no")
+                });
+            }
+
+        },
+        created() {
+        },
+        mounted() {
+            // initAjax()
+            // checkToken()
+            #@init()
+            axios.get("dish/api/getEnabled")
+            .then(resp=>{
+                if(resp.data.code===0){
+                    this.goods = resp.data.data;
+                }
+            })
+            axios.get("menu/api/isPosted")
+                .then(resp=>{
+                    if(resp.data.code===0){
+                        this.again = resp.data.data;
+                    }
+                })
+        }
+    })
+</script>
+</body>
+<style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding: 20px;
+    }
+
+    .goods {
+        flex: 1;
+    }
+
+    .card {
+        cursor: pointer;
+        margin-bottom: 20px;
+    }
+
+    .picture-wrapper {
+        width: 100%;
+        height: 0;
+        padding-bottom: 100%;
+        position: relative;
+    }
+
+    .picture {
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+    }
+
+    .info {
+        padding: 10px;
+    }
+
+    .name {
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+    .price {
+        font-size: 14px;
+        color: gray;
+    }
+
+    .dialog-wrapper {
+        display: flex;
+        align-items: center;
+    }
+
+    .dialog-image {
+        width: 200px;
+        height: 200px;
+        object-fit: cover;
+        margin-right: 20px;
+    }
+
+    .dialog-info {
+        flex: 1;
+    }
+
+    .cart {
+        display: flex;
+        align-items: center;
+        margin-top: 20px;
+        justify-content: space-between;
+        position: fixed;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        padding: 10px;
+        background-color: #f5f5f5;
+        z-index: 1;
+    }
+
+    .tag-box {
+        flex: 1;
+        display: flex;
+        align-items: center;
+        flex-wrap: wrap;
+        margin-right: 20px;
+    }
+
+    .total {
+        font-size: 16px;
+        font-weight: bold;
+    }
+
+
+</style>
+</html>

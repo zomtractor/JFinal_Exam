@@ -1,0 +1,314 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>菜品管理</title>
+    <link rel="stylesheet" href="../static/element-ui/index.css">
+</head>
+<body>
+
+<script src="../static/js/vue.js"></script>
+<script src="../static/element-ui/index.js"></script>
+<script src="../static/js/axios.min.js"></script>
+<script src="../static/js/project.js"></script>
+<div id="app">
+    <template>
+        <el-button round icon="el-icon-menu" class="toggle-btn" @click="toggleLayout"></el-button>
+        <div class="container">
+            <!-- 搜索表单 -->
+            <el-form :inline="true" :model="searchForm" class="search-form">
+                <el-form-item label="查询菜品名">
+                    <el-input v-model="searchForm.name"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="handleSearch">搜索</el-button>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="handleAdd" style="margin-left: 100px">添加</el-button>
+                </el-form-item>
+            </el-form>
+            <!-- 数据表格 -->
+            <el-table :data="tableData" style="width: 100%;" v-if="viewMode">
+                <el-table-column prop="id" label="菜品id"></el-table-column>
+                <el-table-column prop="name" label="菜品名"></el-table-column>
+                <!--                <el-table-column prop="password" label="密码"></el-table-column>-->
+                <el-table-column prop="description" label="描述"></el-table-column>
+                <el-table-column prop="price" label="价格"></el-table-column>
+                <el-table-column label="操作">
+                    <template slot-scope="scope">
+                        <el-button type="primary" @click="handleEdit(scope.row)" icon="el-icon-edit" circle></el-button>
+                        <el-button type="danger" @click="handleDelete(scope.row)" icon="el-icon-delete"
+                                   circle></el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+            <el-row :gutter="20" v-else>
+                <el-col :span="24" :md="12" :lg="4" v-for="item in tableData" :key="item.id">
+                    <el-card shadow="hover"  class="dish-card" >
+                        <div @click="handleEdit(item)">
+                            <img width="180px" height="180px" :src="item.picture" class="dish-img">
+                            <div style="padding: 14px;">
+                                <center><b>{{ item.name }}</b></center>
+                                <div><p>{{item.description}}</p></div>
+                                <div class="price">￥{{ item.price }}</div>
+                            </div>
+                        </div>
+                    </el-card>
+                </el-col>
+            </el-row>
+
+            <!-- 添加/编辑对话框 -->
+            <el-dialog :visible.sync="dialogVisible" :before-close="handleCancel" title="编辑菜品信息" width="40%"
+                       height="40%">
+                <el-form :model="formData">
+                    <el-form-item label="菜品名" prop="name">
+                        <el-input v-model="formData.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="描述" prop="description">
+                        <el-input v-model="formData.description"></el-input>
+                    </el-form-item>
+                    <el-form-item label="价格" prop="price">
+                        <el-input-number v-model="formData.price"></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="图片" prop="picture">
+                        <el-image v-if="formUsageAddr === '/dish/api/updateDish'"
+                                  style="width: 100px; height: 100px"
+                                  :src="formData.picture"
+                                  :fit="fit"></el-image>
+                        <el-upload
+                                class="upload-demo"
+                                :action="uploadUrl"
+                                :multiple="false"
+                                :on-success="afterUpload"
+                                list-type="picture"
+                                :file-list="fileList">
+                            <el-button size="small" type="primary">点击上传</el-button>
+                            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                        </el-upload>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="handleCancel">Cancel</el-button>
+                    <el-button type="primary" @click="handleSave">Save</el-button>
+                </div>
+            </el-dialog>
+
+            <el-pagination class="pagination-wrapper"
+                    background
+                    layout="sizes, prev, pager, next"
+                    :total="pageBean.totalRows"
+                    :page-size="pageBean.pageSize"
+                    :page-sizes="[5, 6, 10, 100]"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+            >
+            </el-pagination>
+        </div>
+    </template>
+</div>
+<script>
+    // 定义Vue组件
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                viewMode: true,
+                // 列表数据
+                tableData: [
+                    {id: 1, name: "Dish 1", price: 10.99, picture: "http://localhost:8081/jfinal/dish/1.jpg",description:'aobocodoeofo'},
+                    {id: 2, name: "Dish 2", price: 15.99, picture: "http://localhost:8081/jfinal/dish/2.jpg",description:'aobocodoeofo'},
+                    {id: 3, name: "Dish 3", price: 8.99, picture: "http://localhost:8081/jfinal/dish/3.jpg",description:'aobocodoeofo'},
+                    {id: 4, name: "Dish 4", price: 12.99, picture: "http://localhost:8081/jfinal/dish/4.jpg",description:'aobocodoeofo'},
+                    {id: 5, name: "Dish 5", price: 9.99, picture: "http://localhost:8081/jfinal/dish/5.jpg",description:'aobocodoeofo'},
+                    {id: 6, name: "Dish 6", price: 14.99, picture: "http://localhost:8081/jfinal/dish/6.jpg",description:'aobocodoeofo'},
+                    // other data
+                ],
+                // 搜索表单数据
+                searchForm: {
+                    name: ''
+                },
+                // 添加/编辑对话框数据
+                dialogVisible: false,
+                formData: {
+                    name: null,
+                    description: null,
+                    price: 0.0,
+                    picture: null,
+                },
+                // 分页数据
+                pageBean: {
+                    data: null,
+                    totalRows: -1,
+                    pageSize: 5,
+                    currentPage: 1,
+                },
+                formUsageAddr: '/dish/api/updateDish',
+                uploadUrl: null,
+                fileList: []
+
+            };
+        },
+        methods: {
+            toggleLayout(){
+                this.viewMode=!this.viewMode
+            },
+            handleSearch() {
+                this.getCount()
+            },
+            handleAdd() {
+                Object.keys(this.formData).forEach(key => {
+                    this.formData[key] = null
+                })
+                this.formUsageAddr = '/dish/api/addDish'
+                this.dialogVisible = true
+            },
+            handleEdit(row) {
+                console.log(row.id)
+                axios.get(`/dish/api/getDish/${row.id}`)
+                    .then(resp => {
+                        this.formData = resp.data.data
+                        console.log(this.formData)
+                        this.dialogVisible = true
+                    })
+            },
+            handleSave() {
+
+                axios.post(this.formUsageAddr, this.formData)
+                    .then(resp => {
+                        if (resp.data.code === 0) {
+                            this.dialogVisible = false
+                            this.$message.success("操作成功")
+                            this.getCount()
+                            this.formUsageAddr = '/dish/api/updateDish'
+                        } else {
+                            this.$message.error(resp.data.msg)
+                        }
+                        this.fileList=[]
+                    })
+            },
+            handleCancel() {
+                this.formUsageAddr = '/dish/api/updateDish'
+                this.dialogVisible = false
+                this.fileList=[]
+            },
+            handleDelete(row) {
+                this.$confirm('确定要删除吗？')
+                    .then(() => {
+                        axios.delete(`/dish/api/deleteDish/${row.id}`)
+                            .then(resp=>{
+                                if(resp.data.code===0){
+                                    this.$message.success("删除成功")
+                                    this.getCount()
+                                } else {
+                                    this.$message.error(resp.data.msg)
+                                }
+                            })
+                    })
+                    .catch(() => {
+                        this.$message.warning("取消了操作")
+                    });
+            },
+            handleSizeChange(val) {
+                this.pageBean.pageSize=val
+                this.getPagination()
+            },
+            handleCurrentChange(val) {
+                this.pageBean.currentPage = val
+                this.getPagination()
+            },
+            getPagination() {
+                axios.post("/dish/api/getDishPagination", this.pageBean).then(resp => {
+                    if (resp.data.code === 0) {
+                        this.tableData = resp.data.data
+                    } else {
+                        this.$message.error(resp.data.msg)
+                    }
+                })
+            },
+            getCount() {
+                this.pageBean.data = this.searchForm
+                axios.post('/dish/api/getDishCount', this.pageBean).then(resp => {
+                    if (resp.data.code === 0) {
+                        this.pageBean = resp.data.data
+                        this.getPagination()
+                    } else {
+                        this.$message.error(resp.data.msg)
+                    }
+                })
+            },
+            afterUpload(resp,file,list) {
+                console.log(resp);
+                if(resp.code===0){
+                    this.formData.picture = resp.data
+                } else {
+                    this.$message.error(resp.data.msg)
+                }
+            }
+        },
+        created() {
+        },
+        mounted() {
+            #@init()
+            this.getCount()
+            this.uploadUrl = axios.defaults.baseURL+'file/api/uploadDishImg'
+        }
+    });
+</script>
+</body>
+<style>
+    .pagination-wrapper {
+        position: fixed;
+        bottom: 0;
+        right: -50px;
+        height: 50px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding-right: 20px;
+    }
+    .container {
+        margin: 20px;
+    }
+    .toggle-btn {
+        position: fixed;
+        right: 20px;
+        top: 20px;
+        z-index: 999;
+    }
+
+    .dish-card {
+        cursor: pointer;
+    }
+
+    .dish-img {
+        object-fit: cover;
+    }
+
+    .price {
+        font-size: 16px;
+        font-weight: bold;
+        color: #f60;
+    }
+
+    .dish-grid {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        margin-bottom: 20px;
+    }
+
+    .name {
+        font-size: 16px;
+        font-weight: bold;
+        text-align: center;
+        margin-bottom: 6px;
+    }
+
+    .price {
+        font-size: 14px;
+        color: #f60;
+        text-align: center;
+    }
+</style>
+</html>

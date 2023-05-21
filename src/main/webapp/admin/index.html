@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>DashBoard</title>
+    <link rel="stylesheet" href="../static/element-ui/index.css">
+</head>
+<body>
+<div id="app">
+    <el-container style="overflow-y: hidden">
+        <el-aside width="200px" style="background-color: rgb(238, 241, 246); height: 95vh">
+            <el-menu @select="handleSelect" :default-openeds="['1', '2']">
+                <el-submenu index="1" style="background-color: #D3DCE6;">
+                    <template slot="title"><i class="el-icon-menu"></i>数据分析</template>
+                    <el-menu-item index="1-1">菜品分析</el-menu-item>
+                    <el-menu-item index="1-2">人员分析</el-menu-item>
+                </el-submenu>
+                <el-submenu index="2" style="background-color: #D3DCE6;">
+                    <template slot="title"><i class="el-icon-setting"></i>数据管理</template>
+                    <el-menu-item index="2-1">菜品管理</el-menu-item>
+                    <el-menu-item index="2-2">用户管理</el-menu-item>
+                    <el-menu-item index="0-1">发布新预定</el-menu-item>
+                </el-submenu>
+            </el-menu>
+        </el-aside>
+
+
+        <el-container>
+            <el-header style="font-size: 12px">
+                <div style="float: left;margin-top: -10px"><h2>食堂登记系统——后台</h2></div>
+                <div style="float: right;">
+                    <el-dropdown @command="handleCommand">
+                        <el-avatar style="margin-top: 10px" src="http://localhost:8081/jfinal/user/2.jpg"></el-avatar>
+                        <el-dropdown-menu slot="dropdown">
+                            <el-dropdown-item @click="logout">退出登录</el-dropdown-item>
+                        </el-dropdown-menu>
+                    </el-dropdown>
+                </div>
+            </el-header>
+
+            <el-main>
+                <iframe :src="subpages.get(currentMenu)" class="page-frame"></iframe>
+            </el-main>
+        </el-container>
+    </el-container>
+
+</div>
+
+
+<script src="../static/js/vue.js"></script>
+<script src="../static/js/axios.min.js"></script>
+<script src="../static/js/project.js"></script>
+<script src="../static/element-ui/index.js"></script>
+
+<script>
+
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                subpages: new Map([
+                    ["2-2", 'user_manage' ],
+                    ["2-1", 'dish_manage' ],
+                    ["1-2", 'user_analysis'],
+                    ["1-1", 'dish_analysis'],
+                    ["0-1", 'manage'],
+                ]),
+                currentMenu: "2-2"
+            }
+        },
+        methods: {
+            handleSelect (index) {
+                this.currentMenu = index
+            },
+            handleCommand(){
+                this.$confirm('确定要退出吗？', '提示', {
+                    confirmButtonText: '确定',
+                    cancelButtonText: '取消',
+                    type: 'warning'
+                }).then(() => {
+                    axios.post('auth/api/logOut')
+                        .then(resp=>{
+                            if(resp.data.code===0){
+                                this.$message.success('成功登出')
+                                setInterval(()=>{
+                                    window.location.href='/auth/login'
+                                },1000)
+                            }
+                        })
+                }).catch((e) => {
+                    console.log(e)
+                });
+            }
+        },
+        mounted() {
+            #@init()
+        }
+    })
+</script>
+</body>
+<style>
+    .el-header {
+        background-color: #B3C0D1;
+        color: #333;
+        line-height: 60px;
+    }
+
+    .el-aside {
+        color: #333;
+    }
+
+    .page-frame {
+        width: 100%;
+        height: 100%;
+        border: none;
+        overflow: hidden;
+    }
+    .main-menu {
+       background-color: #bbbbbb;
+    }
+
+</style>
+</html>
+

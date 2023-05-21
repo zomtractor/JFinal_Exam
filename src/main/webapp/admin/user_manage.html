@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>用户管理</title>
+    <link rel="stylesheet" href="../static/element-ui/index.css">
+</head>
+<body>
+
+<script src="../static/js/vue.js"></script>
+<script src="../static/element-ui/index.js"></script>
+<script src="../static/js/axios.min.js"></script>
+<script src="../static/js/project.js"></script>
+<div id="app">
+    <template>
+        <div class="container">
+            <!-- 搜索表单 -->
+            <el-form :inline="true" :model="searchForm" class="search-form">
+                <el-form-item label="查询账户名">
+                    <el-input v-model="searchForm.username"></el-input>
+                </el-form-item>
+                <el-form-item label="查询性名">
+                    <el-input v-model="searchForm.name"></el-input>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="handleSearch">搜索</el-button>
+                </el-form-item>
+                <el-form-item>
+                    <el-button type="primary" @click="handleAdd" style="margin-left: 100px">添加</el-button>
+                </el-form-item>
+            </el-form>
+            <!-- 数据表格 -->
+            <el-table :data="tableData" style="width: 100%;">
+                <el-table-column prop="id" label="用户id"></el-table-column>
+                <el-table-column prop="username" label="用户名"></el-table-column>
+                <!--                <el-table-column prop="password" label="密码"></el-table-column>-->
+                <el-table-column prop="name" label="姓名"></el-table-column>
+                <el-table-column prop="age" label="年龄"></el-table-column>
+                <el-table-column prop="gender" label="性别"></el-table-column>
+                <!--                <el-table-column prop="is_manager" label="管理员"></el-table-column>-->
+                <!--                <el-table-column prop="avatar" label="头像"></el-table-column>-->
+                <el-table-column label="操作">
+                    <template slot-scope="scope">
+                        <el-button type="primary" @click="handleEdit(scope.row)" icon="el-icon-edit" circle></el-button>
+                        <el-button type="danger" @click="handleDelete(scope.row)" icon="el-icon-delete"
+                                   circle></el-button>
+                    </template>
+                </el-table-column>
+            </el-table>
+
+            <!-- 添加/编辑对话框 -->
+            <el-dialog :visible.sync="dialogVisible" :before-close="handleCancel" title="编辑用户信息" width="40%"
+                       height="40%">
+                <el-form :model="formData" :rules="formRules">
+                    <el-form-item label="用户名" prop="username">
+                        <el-input v-model="formData.username"></el-input>
+                    </el-form-item>
+                    <el-form-item label="密码" prop="password">
+                        <el-input v-model="formData.password"></el-input>
+                    </el-form-item>
+                    <el-form-item label="姓名" prop="name">
+                        <el-input v-model="formData.name"></el-input>
+                    </el-form-item>
+                    <el-form-item label="年龄" prop="age">
+                        <el-input-number v-model="formData.age"></el-input-number>
+                    </el-form-item>
+                    <el-form-item label="性别" prop="gender">
+                        <el-radio-group v-model="formData.gender">
+                            <el-radio label="男">男</el-radio>
+                            <el-radio label="女">女</el-radio>
+                        </el-radio-group>
+                    </el-form-item>
+                    <el-form-item label="管理员" prop="is_manager">
+                        <el-switch v-model="formData.is_manager"></el-switch>
+                    </el-form-item>
+                    <el-form-item label="头像" prop="avatar">
+                        <el-image v-if="formUsageAddr === '/user/api/updateUser'"
+                                style="width: 100px; height: 100px"
+                                :src="formData.avatar"
+                                :fit="fit"></el-image>
+                        <el-upload
+                                class="upload-demo"
+                                :action="uploadUrl"
+                                :multiple="false"
+                                :on-success="afterUpload"
+                                list-type="picture"
+                                :file-list="fileList">
+                            <el-button size="small" type="primary">点击上传</el-button>
+                            <div slot="tip" class="el-upload__tip">只能上传jpg/png文件，且不超过500kb</div>
+                        </el-upload>
+                    </el-form-item>
+                </el-form>
+                <div slot="footer" class="dialog-footer">
+                    <el-button @click="handleCancel">Cancel</el-button>
+                    <el-button type="primary" @click="handleSave">Save</el-button>
+                </div>
+            </el-dialog>
+
+            <!-- 分页 -->
+            <el-pagination class="pagination-wrapper"
+                    background
+                    layout="sizes, prev, pager, next"
+                    :total="pageBean.totalRows"
+                    :page-size="pageBean.pageSize"
+                    :page-sizes="[5, 6, 10, 100]"
+                    @size-change="handleSizeChange"
+                    @current-change="handleCurrentChange"
+            >
+            </el-pagination>
+        </div>
+    </template>
+</div>
+<!-- 定义Vue组件 -->
+
+<script>
+    // 定义Vue组件
+    new Vue({
+        el: "#app",
+        data() {
+            return {
+                // 列表数据
+                tableData: [
+                    {
+                        id: 1,
+                        username: 'john',
+                        password: '123456',
+                        name: 'John Smith',
+                        age: 28,
+                        gender: 'male',
+                        is_manager: false,
+                        avatar: null
+                    },
+                    // other data
+                ],
+                // 搜索表单数据
+                searchForm: {
+                    username: '',
+                    name: ''
+                },
+                // 添加/编辑对话框数据
+                dialogVisible: false,
+                formData: {
+                    username: '',
+                    password: '',
+                    name: '',
+                    age: 0,
+                    gender: 'male',
+                    is_manager: false,
+                    avatar: null
+                },
+                fileList: [],
+                uploadUrl: '../static/img',
+                // 表单验证规则
+                formRules: {
+                    username: [
+                        {required: true, message: 'Please input username', trigger: 'blur'}
+                    ],
+                    password: [
+                        {required: true, message: 'Please input password', trigger: 'blur'}
+                    ]
+                },
+                // 分页数据
+                pageBean: {
+                    data: null,
+                    totalRows: -1,
+                    pageSize: 5,
+                    currentPage: 1,
+                },
+                formUsageAddr: '/user/api/updateUser'
+
+            };
+        },
+        methods: {
+            handleSearch() {
+                this.getCount()
+            },
+            handleAdd() {
+                Object.keys(this.formData).forEach(key => {
+                    this.formData[key] = null
+                })
+                this.formUsageAddr = '/user/api/addUser'
+                this.dialogVisible = true
+            },
+            handleEdit(row) {
+                console.log(row.id)
+                axios.get(`/user/api/getUser/${row.id}`)
+                    .then(resp => {
+                        this.formData = resp.data.data
+                        console.log(this.formData)
+                        this.dialogVisible = true
+                    })
+            },
+            handleSave() {
+
+                axios.post(this.formUsageAddr, this.formData)
+                    .then(resp => {
+                        if (resp.data.code === 0) {
+                            this.dialogVisible = false
+                            this.$message.success("操作成功")
+                            this.getCount()
+                            this.formUsageAddr = '/user/api/updateUser'
+                        } else {
+                            this.$message.error(resp.data.msg)
+                        }
+                        this.fileList=[]
+                    })
+            },
+            handleCancel() {
+                this.formUsageAddr = '/user/api/updateUser'
+                this.dialogVisible = false
+                this.fileList=[]
+            },
+            handleDelete(row) {
+                this.$confirm('确定要删除吗？')
+                    .then(() => {
+                        axios.delete(`/user/api/deleteUser/${row.id}`)
+                        .then(resp=>{
+                            if(resp.data.code===0){
+                                this.$message.success("删除成功")
+                                this.getCount()
+                            } else {
+                                this.$message.error(resp.data.msg)
+                            }
+                        })
+                    })
+                    .catch(() => {
+                        this.$message.warning("取消了操作")
+                    });
+            },
+            handleSizeChange(val) {
+                this.pageBean.pageSize=val
+                this.getPagination();
+            },
+            handleCurrentChange(val) {
+                this.pageBean.currentPage = val
+                this.getPagination()
+            },
+            getPagination() {
+                axios.post("/user/api/getUserPagination", this.pageBean).then(resp => {
+                    if (resp.data.code === 0) {
+                        this.tableData = resp.data.data
+                    } else {
+                        this.$message.error(resp.data.msg)
+                    }
+                })
+            },
+            getCount() {
+                this.pageBean.data = this.searchForm
+                axios.post('/user/api/getUserCount', this.pageBean).then(resp => {
+                    if (resp.data.code === 0) {
+                        this.pageBean = resp.data.data
+                        this.getPagination()
+                    } else {
+                        this.$message.error(resp.data.msg)
+                    }
+                })
+            },
+            afterUpload(resp,file,list) {
+                console.log(resp);
+                if(resp.code===0){
+                    this.formData.avatar = resp.data
+                } else {
+                    this.$message.error(resp.data.msg)
+                }
+            }
+        },
+        created() {
+        },
+        mounted() {
+            #@init()
+            this.getCount()
+            this.uploadUrl = axios.defaults.baseURL+'file/api/uploadUserAvatar'
+        }
+    });
+</script>
+</body>
+<style>
+    .pagination-wrapper {
+        position: fixed;
+        bottom: 0;
+        right: -50px;
+        height: 50px;
+        width: 100%;
+        display: flex;
+        align-items: center;
+        padding-right: 20px;
+    }
+</style>
+</html>

@@ -1,0 +1,46 @@
+Table: dish
+-------------+--------------+------+-----+---------+---------
+ Field       | Type         | Null | Key | Default | Remarks 
+-------------+--------------+------+-----+---------+---------
+ id          | BIGINT(19)   | NO   | PRI |         |         
+ name        | VARCHAR(64)  | YES  |     |         |         
+ price       | DECIMAL(10)  | YES  |     |         |         
+ picture     | VARCHAR(128) | YES  |     |         |         
+ description | VARCHAR(128) | YES  |     |         |         
+ demand      | INT(10)      | YES  |     |         |         
+-------------+--------------+------+-----+---------+---------
+
+Table: dish_rate
+---------+------------+------+-----+---------+---------
+ Field   | Type       | Null | Key | Default | Remarks 
+---------+------------+------+-----+---------+---------
+ id      | BIGINT(19) | NO   | PRI |         |         
+ dish_id | BIGINT(19) | YES  |     |         |         
+ demand  | INT(10)    | YES  |     |         |         
+ time    | BIGINT(19) | YES  |     |         |         
+---------+------------+------+-----+---------+---------
+
+Table: user
+------------+--------------+------+-----+---------+---------
+ Field      | Type         | Null | Key | Default | Remarks 
+------------+--------------+------+-----+---------+---------
+ id         | BIGINT(19)   | NO   | PRI |         |         
+ username   | VARCHAR(64)  | NO   |     |         |         
+ password   | VARCHAR(64)  | NO   |     |         |         
+ name       | VARCHAR(64)  | YES  |     |         |         
+ age        | INT(10)      | YES  |     |         |         
+ gender     | VARCHAR(4)   | YES  |     | 男       |         
+ is_manager | INT(10)      | NO   |     | 0       |         
+ avatar     | VARCHAR(128) | YES  |     |         |         
+------------+--------------+------+-----+---------+---------
+
+Table: user_rate
+---------+------------+------+-----+---------+---------
+ Field   | Type       | Null | Key | Default | Remarks 
+---------+------------+------+-----+---------+---------
+ id      | BIGINT(19) | NO   | PRI |         |         
+ user_id | BIGINT(19) | YES  |     |         |         
+ dish_id | BIGINT(19) | YES  |     |         |         
+ time    | BIGINT(19) | YES  |     |         |         
+---------+------------+------+-----+---------+---------
+

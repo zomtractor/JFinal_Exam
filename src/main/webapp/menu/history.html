@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>预定</title>
+    <link rel="stylesheet" href="../static/element-ui/index.css">
+    <link rel="stylesheet" href="../static/v-charts/style.min.css">
+</head>
+<body>
+<div id="app" class="container">
+    <el-tabs v-model="activeName" @tab-click="handleClick">
+        <!--            <div class="goods">-->
+        <el-tab-pane label="预定" name="first" >
+        </el-tab-pane>
+        <el-tab-pane label="管理" name="second">
+            <div>
+                <ve-pie :data="pieData" ></ve-pie>
+            </div>
+            <div>
+                <el-table
+                        class="timetab"
+                        :data="tableData"
+                        height="250"
+                        border
+                        style="width: 80%;margin: auto">
+                    <el-table-column
+                            prop="time"
+                            label="日期"
+                            width="300">
+                    </el-table-column>
+                    <el-table-column
+                            prop="dishes"
+                            label="预定的菜品"
+                    >
+                    </el-table-column>
+                </el-table>
+            </div>
+        </el-tab-pane>
+        <el-tab-pane label="个人信息" name="third">
+        </el-tab-pane>
+    </el-tabs>
+
+
+</div>
+<script src="../static/js/vue.js"></script>
+<script src="../static/js/axios.min.js"></script>
+<script src="../static/element-ui/index.js"></script>
+<script src="../static/v-charts/echarts.min.js"></script>
+<script src="../static/v-charts/index.min.js"></script>
+
+<script>
+
+
+    new Vue({
+        el: '#app',
+        data() {
+            return {
+                activeName: "second",
+                pieData: {
+                    columns: ['x', 'y1'],
+                    rows: [
+                        {'x': '1月1日', 'y1': 123},
+                        {'x': '1月2日', 'y1': 1223},
+                        {'x': '1月3日', 'y1': 2123},
+                        {'x': '1月4日', 'y1': 4123},
+                        {'x': '1月5日', 'y1': 3123},
+                        {'x': '1月6日', 'y1': 7123}
+                    ]
+                },
+                tableData: [
+                    {
+                        time: '2023-01-02 12:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                    {
+                        time: '2023-01-02 18:00:00',
+                        dishes: ["西红柿炒蛋", "番茄炒蛋", "蛋炒番茄"],
+                        price: 200
+                    },
+                ]
+            }
+        },
+        methods: {
+            handleClick(tab,event){
+                if(tab.name==='first'){
+                    window.location.href='.'
+                } else if(tab.name==='third'){
+                    window.location.href='personal'
+                }
+            },
+        },
+        created() {
+        },
+        mounted() {
+            #@init()
+
+            axios.get("menu/api/getHistoryById")
+                .then(resp=>{
+                    if(resp.data.code===0){
+                        this.tableData = resp.data.data
+                    }
+                })
+            axios.get("menu/api/getUserChartById")
+                .then(resp=>{
+                    if(resp.data.code===0){
+                        this.pieData = resp.data.data.chart
+                    }
+                })
+        }
+    })
+</script>
+</body>
+<style>
+    .container {
+        display: flex;
+        flex-direction: column;
+        height: 100vh;
+        padding: 20px;
+    }
+</style>
+</html>
