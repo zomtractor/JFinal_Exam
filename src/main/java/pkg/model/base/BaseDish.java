@@ -49,12 +49,12 @@ public abstract class BaseDish<M extends BaseDish<M>> extends Model<M> implement
 		return getStr("description");
 	}
 	
-	public void setDemand(java.lang.Integer demand) {
-		set("demand", demand);
+	public void setEnable(java.lang.Boolean enable) {
+		set("enable", enable);
 	}
 	
-	public java.lang.Integer getDemand() {
-		return getInt("demand");
+	public java.lang.Boolean getEnable() {
+		return getBoolean("enable");
 	}
 	
 }

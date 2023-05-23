@@ -17,14 +17,15 @@ public class UserAuthServiceImpl implements UserAuthService {
 
     @Override
     public Result verifyCheckCode(String sessionId, String code) {
-        Cache auth = Redis.use("auth");
-        String ans = auth.get(String.format("jfinal:auth:checkcode:%s",sessionId));
-        if(ans==null) return Result.err("checkcode expired.");
-        if(code.trim().equalsIgnoreCase(ans)){
-            return Result.ok("true");
-        } else {
-            return Result.err("invalid checkcode.");
-        }
+        return Result.ok("true");
+//        Cache auth = Redis.use("auth");
+//        String ans = auth.get(String.format("jfinal:auth:checkcode:%s",sessionId));
+//        if(ans==null) return Result.err("checkcode expired.");
+//        if(code.trim().equalsIgnoreCase(ans)){
+//            return Result.ok("true");
+//        } else {
+//            return Result.err("invalid checkcode.");
+//        }
 
     }
 
@@ -50,7 +51,7 @@ public class UserAuthServiceImpl implements UserAuthService {
         else if(!user.getPassword().equals(password)) return Result.err("密码不正确！");
         else {
             String token = TokenUtil.generateToken(user);
-            UserHolder.saveUser(user);
+            //UserHolder.saveUser(user);
             return Result.ok(token);
         }
 

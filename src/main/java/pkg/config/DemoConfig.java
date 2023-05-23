@@ -16,7 +16,7 @@ import pkg.router.FrontRouter;
 public class DemoConfig extends JFinalConfig {
 
     public void configConstant(Constants me) {
-        me.setDevMode(true);
+        //me.setDevMode(true);
         me.setResolveJsonRequest(true);
         me.setInjectDependency(true);
         me.setJsonFactory(new FastJsonFactory());

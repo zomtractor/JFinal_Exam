@@ -26,7 +26,7 @@ public class DbConfig {
             arp.addSqlTemplate("pkg/model/dish.sql");
             arp.addSqlTemplate("pkg/model/multiple.sql");
             arp.setCache(new RedisConfig());
-            arp.setShowSql(true);
+            //arp.setShowSql(true);
         }
         return arp;
     }

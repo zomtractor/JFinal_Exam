@@ -1,20 +1,32 @@
 import com.jfinal.plugin.activerecord.ActiveRecordPlugin;
+import com.jfinal.plugin.activerecord.Db;
 import com.jfinal.plugin.druid.DruidPlugin;
 import com.jfinal.plugin.redis.Cache;
 import com.jfinal.plugin.redis.Redis;
 import com.jfinal.plugin.redis.RedisPlugin;
 import org.junit.Before;
 import org.junit.Test;
+import pkg.bean.LoginForm;
 import pkg.config.RedisConfig;
 import pkg.model.Dish;
 import pkg.model.DishRate;
 import pkg.model.User;
 import pkg.model.UserRate;
+import pkg.service.AnalysisService;
+import pkg.service.UserAuthService;
+import pkg.service.UserService;
+import pkg.service.impl.AnalysisServiceImpl;
+import pkg.service.impl.UserAuthServiceImpl;
+import pkg.service.impl.UserServiceImpl;
+import pkg.util.TokenUtil;
 
+import java.io.FileOutputStream;
+import java.io.FileWriter;
 import java.text.SimpleDateFormat;
+import java.util.Date;
 import java.util.Random;
 
-public class TestInitData {
+public class InitData {
 
     @Before
     public void init() {
@@ -38,7 +50,7 @@ public class TestInitData {
     }
 
     @Test
-    public void testAddAdmin(){
+    public void addAdmin(){
         User user = User.dao.findById(1);
         System.out.println(user);
         Redis.use("auth").set("jfinal:auth:token:admin",user);
@@ -96,5 +108,33 @@ public class TestInitData {
 //        AnalysisServiceImpl service = new AnalysisServiceImpl();
 //        Result result = service.getDishChartByRedis();
 //        System.out.println(result);
+    }
+
+    @Test
+    public void addHighConcurrencyUser() throws Exception{
+        Random random = new Random();
+        UserAuthService userAuthService = new UserAuthServiceImpl();
+        Cache redis = Redis.use("auth");
+        FileWriter fos = new FileWriter("D:/hctest.txt");
+        for(int i=0;i<1000;i++){
+//            User user = new User();
+//            user.setUsername("HC"+i);
+//            user.setName("hc"+i);
+//            user.setPassword("abcd12345678");
+//            user.setAge(Math.abs(random.nextInt(100)));
+//            user.setAvatar("http://localhost:8081/jfinal/user/1684056536365.jpg");
+//            user.setIsManager(false);
+//            user.setGender(random.nextBoolean()?"男":"女");
+//            user.save();
+//            redis.set("jfinal:auth:token:"+"hc"+i,user);
+            fos.write(String.format("HC%d,hc%d\n",i,i));
+        }
+        fos.close();
+    }
+    @Test
+    public void publishVoute(){
+        AnalysisService service = new AnalysisServiceImpl();
+        Db.update("update dish set enable = 1");
+        service.publishNewTest(new Date());
     }
 }

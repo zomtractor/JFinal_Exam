@@ -27,7 +27,6 @@ public class UserAuthApiController extends Controller implements ApiController{
      */
     @Before(LoginFormValidator.class)
     public void login(LoginForm loginForm){
-        System.out.println(loginForm);
         Result checkResult = userAuthService.verifyCheckCode(getRequest().getSession().getId(),loginForm.getCheckcode());
         if(checkResult.isOk()){
             renderJson(userAuthService.login(loginForm.getUsername(),loginForm.getPassword()));
@@ -40,7 +39,6 @@ public class UserAuthApiController extends Controller implements ApiController{
      */
     @Before(LoginFormValidator.class)
     public void register(LoginForm loginForm){
-        System.out.println(loginForm);
         Result checkResult = userAuthService.verifyCheckCode(getRequest().getSession().getId(),loginForm.getCheckcode());
         if(checkResult.isOk()){
             renderJson(userAuthService.register(loginForm.getUsername(),loginForm.getPassword()));
@@ -102,7 +100,6 @@ public class UserAuthApiController extends Controller implements ApiController{
     @ActionKey("/auth/api/hit_qrcode")
     public void hitQrCode(){
         String token = getHeader("authorization");
-        System.out.println(token);
         String key = get("key");
         Cache auth = Redis.use("auth");
         auth.setex("jfinal:auth:qrcode:"+key,300,token);
@@ -115,6 +112,7 @@ public class UserAuthApiController extends Controller implements ApiController{
     @ActionKey("/auth/api/check_qrcode")
     public void checkQrCode(){
         String key = get("key");
+        System.out.println(key);
         Cache auth = Redis.use("auth");
         String token = auth.get("jfinal:auth:qrcode:"+key);
         if(token==null) renderJson(Result.err(null));

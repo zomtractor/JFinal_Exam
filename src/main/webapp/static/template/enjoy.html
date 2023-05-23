@@ -1,10 +1,11 @@
 <script>
     #define initAjax()
+        //axios.defaults.baseURL = "http://192.168.43.84:8080/";
         axios.defaults.baseURL = "http://localhost:8080/";
-        axios.interceptors.request.use(config => {
+        axios.interceptors.request.use(function(config) {
             config.headers.authorization = localStorage.getItem("token");
             return config;
-        }, error => {
+        }, function(error) {
             console.log('err', error);
         })
     #end
@@ -13,12 +14,12 @@
 
         #@initAjax()
         axios.post("/auth/api/check_token")
-            .then(resp=>{
+            .then(function(resp){
                 if(resp.data.code===0){
                 } else {
                     window.location.href="/auth/login";
                 }
-            }).catch(e=>{
+            }).catch(function(e){
             window.location.href="/auth/login";
         });
     #end

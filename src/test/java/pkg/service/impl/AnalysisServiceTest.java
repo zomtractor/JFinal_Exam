@@ -11,6 +11,7 @@ import pkg.service.AnalysisService;
 import pkg.util.UserHolder;
 
 import java.text.SimpleDateFormat;
+import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
 
@@ -88,13 +89,20 @@ public class AnalysisServiceTest {
         System.out.println(res);
     }
 
-    
-    public Result postForm(Long id, List<Long> ls) {
-        return null;
+    @Test
+    public void postForm() {
+        long id = 14;
+        List<Long> ls = Arrays.asList(3L, 4L, 5L, 6L, 7L);
+        Result result = service.postForm(id, ls);
+        Assert.assertNotNull(result);
+        System.out.println(result);
     }
 
-    
-    public Result isPosted(Long id) {
-        return null;
+    @Test
+    public void isPosted() {
+        long id = 14;
+        Result result = service.isPosted(id);
+        Assert.assertNotNull(result);
+        System.out.println(result);
     }
 }
