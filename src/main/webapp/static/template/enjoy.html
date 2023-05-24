@@ -1,7 +1,8 @@
 <script>
     #define initAjax()
         //axios.defaults.baseURL = "http://192.168.43.84:8080/";
-        axios.defaults.baseURL = "http://localhost:8080/";
+        // axios.defaults.baseURL = "http://localhost:8080/";
+        axios.defaults.baseURL = "http://172.18.13.131:8080/";
         axios.interceptors.request.use(function(config) {
             config.headers.authorization = localStorage.getItem("token");
             return config;

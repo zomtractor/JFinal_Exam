@@ -1,9 +1,7 @@
 package pkg.service.impl;
 
-import org.junit.After;
-import org.junit.Assert;
-import org.junit.Before;
-import org.junit.Test;
+import org.junit.*;
+import org.junit.runners.MethodSorters;
 import pkg.bean.Pagination;
 import pkg.bean.Result;
 import pkg.config.DbConfig;
@@ -18,11 +16,12 @@ import java.text.SimpleDateFormat;
 import java.util.Arrays;
 import java.util.List;
 
+@FixMethodOrder(MethodSorters.NAME_ASCENDING)
 public class DishServiceTest {
 
     private DishService service;
     @Before
-    public void init(){
+    public void a_init(){
         DbConfig.getDruid().start();
         DbConfig.getArp().start();
         RedisConfig.getRp().start();
@@ -33,7 +32,7 @@ public class DishServiceTest {
 
 
     @Test
-    public void add() {
+    public void b_add() {
         Dish dish = new Dish();
         dish.setName("testDish");
         dish.setPrice(BigDecimal.valueOf(2));
@@ -45,13 +44,13 @@ public class DishServiceTest {
     }
 
     @Test
-    public void getAll() {
+    public void c_getAll() {
         Result res = service.getAll();
         Assert.assertTrue(res.isOk());
     }
 
     @Test
-    public void getById() {
+    public void d_getById() {
         long id = 3;
         Result res = service.getById(id);
         Assert.assertTrue(res.isOk());
@@ -59,7 +58,7 @@ public class DishServiceTest {
 
 
     @Test
-    public void update() {
+    public void e_update() {
         Dish dish = new Dish();
         dish.setId(11L);
         dish.setName("tttt");
@@ -70,7 +69,7 @@ public class DishServiceTest {
     }
 
     @Test
-    public void getCount() {
+    public void f_getCount() {
         Pagination pagination = new Pagination();
         Dish dish = new Dish();
         dish.setName("t");
@@ -82,7 +81,7 @@ public class DishServiceTest {
     }
 
     @Test
-    public void getPaginate() {
+    public void g_getPaginate() {
         Pagination pagination = new Pagination();
         Dish dish = new Dish();
         dish.setName("t");
@@ -94,35 +93,35 @@ public class DishServiceTest {
     }
 
     @Test
-    public void delete() {
-        long id = 11;
-        Result res = service.delete(id);
+    public void h_delete() {
+        Dish dish = Dish.dao.findFirst("select * from dish where name = 'testDish'");
+        Result res = service.delete(dish.getId());
         Assert.assertTrue(res.isOk());
     }
 
     @Test
-    public void getByName() {
+    public void i_getByName() {
         String name = "西红柿";
         Result res = service.getByName(name);
         Assert.assertTrue(res.isOk());
     }
 
     @Test
-    public void setEnable() {
+    public void j_setEnable() {
         List<Long> ids = Arrays.asList(3L,4L,5L,6L,7L);
         Result res = service.setEnable(ids);
         Assert.assertTrue(res.isOk());
     }
 
     @Test
-    public void getEnabled() {
+    public void k_getEnabled() {
         Result res = service.getEnabled();
         Assert.assertTrue(res.isOk());
     }
 
 
     @After
-    public void destroy(){
+    public void l_destroy(){
         UserHolder.removeUser();
     }
 }
