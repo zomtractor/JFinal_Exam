@@ -35,7 +35,7 @@ public class AnalysisServiceTest {
         Date d1 = sf.parse("2023.05.01 12:00:00");
         Date d2 = sf.parse("2023.05.21 12:00:00");
         Result res = service.getDishChartByDate(d1, d2);
-        Assert.assertNotNull(res);
+        Assert.assertTrue(res.isOk());
         System.out.println(res);
     }
 
@@ -45,7 +45,7 @@ public class AnalysisServiceTest {
         Date start = sf.parse("2023.05.01 12:00:00");
         Date end = sf.parse("2023.05.21 12:00:00");
         Result res = service.getDishChartById(id, start, end);
-        Assert.assertNotNull(res);
+        Assert.assertTrue(res.isOk());
         System.out.println(res);
     }
 
@@ -53,7 +53,7 @@ public class AnalysisServiceTest {
     public void getUserChartById() {
         long id = 1;
         Result res = service.getUserChartById(id);
-        Assert.assertNotNull(res);
+        Assert.assertTrue(res.isOk());
         System.out.println(res);
     }
 
@@ -63,29 +63,29 @@ public class AnalysisServiceTest {
         Date start = sf.parse("2023.05.01 12:00:00");
         Date end = sf.parse("2023.05.21 12:00:00");
         Result res = service.getUserChartByDate(id, start, end);
-        Assert.assertNotNull(res);
+        Assert.assertTrue(res.isOk());
         System.out.println(res);
     }
 
     @Test
     public void getDishChartByRedis() {
         Result res = service.getDishChartByRedis();
-        Assert.assertNotNull(res);
+        Assert.assertTrue(res.isOk());
         System.out.println(res);
     }
 
-    //@Test
+    @Test
     public void publishNewTest() throws Exception{
         Date start = sf.parse("2023.05.21 12:00:00");
         Result res = service.publishNewTest(start);
-        Assert.assertNotNull(res);
+        Assert.assertTrue(res.isOk());
         System.out.println(res);
     }
 
     @Test
     public void getHistoryById() {
         Result res = service.getHistoryById();
-        Assert.assertNotNull(res);
+        Assert.assertTrue(res.isOk());
         System.out.println(res);
     }
 
@@ -94,7 +94,7 @@ public class AnalysisServiceTest {
         long id = 14;
         List<Long> ls = Arrays.asList(3L, 4L, 5L, 6L, 7L);
         Result result = service.postForm(id, ls);
-        Assert.assertNotNull(result);
+        Assert.assertTrue(result.isOk());
         System.out.println(result);
     }
 
@@ -102,7 +102,7 @@ public class AnalysisServiceTest {
     public void isPosted() {
         long id = 14;
         Result result = service.isPosted(id);
-        Assert.assertNotNull(result);
+        Assert.assertTrue(result.isOk());
         System.out.println(result);
     }
 }

@@ -2,6 +2,7 @@ package pkg.service.impl;
 
 import com.jfinal.kit.Kv;
 import com.jfinal.plugin.activerecord.Db;
+import lombok.SneakyThrows;
 import pkg.bean.Pagination;
 import pkg.bean.Result;
 import pkg.model.User;
@@ -46,6 +47,12 @@ public class UserServiceImpl implements UserService {
 
     @Override
     public Result add(User user){
+        try{
+            User u1 = User.dao.template("selectUserByUserName",user.getUsername()).findFirst();
+            if(u1!=null) return Result.err("用户已存在");
+        } catch (Exception e){
+            return Result.err("用户已存在");
+        }
         return Result.status(user.save());
     }
 

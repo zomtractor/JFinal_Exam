@@ -10,8 +10,8 @@ public class TokenUtil {
     public static String generateToken(User user){
         Cache auth = Redis.use("auth");
         String key = UUID.randomUUID().toString();
-        //auth.setex("jfinal:auth:token:"+key,7*24*60*60,user);
-        auth.setex("jfinal:auth:token:"+key,10*60,user);
+        auth.setex("jfinal:auth:token:"+key,7*24*60*60,user);
+//        auth.setex("jfinal:auth:token:"+key,10*60,user);
         return key;
     }
 

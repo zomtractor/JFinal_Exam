@@ -9,6 +9,9 @@ import javax.sql.DataSource;
 
 public class DbConfig {
     private static final String url = "jdbc:mysql://localhost/jfinal_exam";
+//    private static final String url = "jdbc:mysql://172.17.16.114/jfinal_exam";
+//    private static final String url = "jdbc:mysql://192.168.199.183/jfinal_exam";
+//    private static final String url = "jdbc:mysql://192.168.43.199/jfinal_exam";
     private static final String username = "root";
     private static final String password = "1234";
     private static DruidPlugin druid;

@@ -30,17 +30,19 @@ public class DishServiceTest {
         UserHolder.saveUser(user);
     }
 
-
     @Test
     public void b_add() {
         Dish dish = new Dish();
-        dish.setName("testDish");
-        dish.setPrice(BigDecimal.valueOf(2));
-        dish.setDescription("test description");
-        dish.setPicture("http://localhost:8081/jfinal/dish/1683362243091.jpg");
-        dish.setEnable(true);
+        dish.setName("testDish");dish.setPrice(BigDecimal.valueOf(2));dish.setDescription("test description");
+        dish.setPicture("http://localhost:8081/jfinal/dish/1683362243091.jpg");dish.setEnable(true);
         Result res = service.add(dish);
         Assert.assertTrue(res.isOk());
+        try{
+            service.add(dish);
+            Assert.fail();  //不能重复添加
+        } catch (Exception e){
+            System.out.println("expected");
+        }
     }
 
     @Test
@@ -54,18 +56,25 @@ public class DishServiceTest {
         long id = 3;
         Result res = service.getById(id);
         Assert.assertTrue(res.isOk());
+        id = -4;    //不存在
+        res = service.getById(id);
+        Assert.assertFalse(res.isOk());
     }
 
 
     @Test
     public void e_update() {
-        Dish dish = new Dish();
-        dish.setId(11L);
+        Result testDish = service.getByName("testDish");
+        List<Dish> data = (List<Dish>) testDish.getData();
+        Dish dish = data.get(0);
         dish.setName("tttt");
         dish.setPrice(BigDecimal.valueOf(2));
         dish.setDescription("test description");
         dish.setPicture("http://localhost:8081/jfinal/dish/1683362243091.jpg");
         dish.setEnable(true);
+        Result res = service.update(dish);
+        Assert.assertTrue(res.isOk());
+
     }
 
     @Test
@@ -78,6 +87,12 @@ public class DishServiceTest {
         pagination.setPageSize(5);
         Result res = service.getCount(pagination);
         Assert.assertTrue(res.isOk());
+
+        dish.setName("NONONONONONO");
+        pagination = new Pagination();
+        pagination.setData(dish);
+        res = service.getCount(pagination);
+        System.out.println(res);
     }
 
     @Test
@@ -94,7 +109,7 @@ public class DishServiceTest {
 
     @Test
     public void h_delete() {
-        Dish dish = Dish.dao.findFirst("select * from dish where name = 'testDish'");
+        Dish dish = Dish.dao.findFirst("select * from dish where name = 'tttt'");
         Result res = service.delete(dish.getId());
         Assert.assertTrue(res.isOk());
     }

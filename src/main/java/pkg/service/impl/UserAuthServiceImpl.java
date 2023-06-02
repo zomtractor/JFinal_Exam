@@ -1,5 +1,6 @@
 package pkg.service.impl;
 
+import com.jfinal.kit.Kv;
 import com.jfinal.plugin.redis.Cache;
 import com.jfinal.plugin.redis.Redis;
 import jdk.nashorn.internal.parser.Token;
@@ -62,6 +63,8 @@ public class UserAuthServiceImpl implements UserAuthService {
         User user = new User();
         user.setUsername(username);
         user.setPassword(password);
+        User u1 = User.dao.template("selectUserByUserName",user.getUsername()).findFirst();
+        if(u1!=null) return Result.err("用户已存在");
         return Result.status(user.save());
     }
 

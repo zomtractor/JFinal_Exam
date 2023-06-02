@@ -17,6 +17,7 @@ public class DemoConfig extends JFinalConfig {
 
     public void configConstant(Constants me) {
         //me.setDevMode(true);
+        me.setDevMode(false);
         me.setResolveJsonRequest(true);
         me.setInjectDependency(true);
         me.setJsonFactory(new FastJsonFactory());

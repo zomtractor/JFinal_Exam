@@ -15,6 +15,9 @@ public class RedisConfig implements ICache {
     public static RedisPlugin getRp(){
         if(redisPlugin==null) {
             redisPlugin = new RedisPlugin("auth", "localhost");
+//            redisPlugin = new RedisPlugin("auth", "192.168.199.183");
+//            redisPlugin = new RedisPlugin("auth", "172.17.43.199");
+//            redisPlugin = new RedisPlugin("auth", "192.168.43.199");
         }
         return redisPlugin;
     }
